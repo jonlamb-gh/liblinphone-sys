@@ -1,6 +1,11 @@
 use cmake::Config;
 use std::path::Path;
 
+// https://github.com/rust-lang/rust-bindgen/issues/687
+//
+// TODO - deal with u128/f128
+// https://github.com/rust-lang/rust-bindgen/issues/1549
+
 fn main() {
     let dst = Config::new("vendor/linphone-sdk")
         .define("ENABLE_OPENH264", "ON")
@@ -20,9 +25,10 @@ fn main() {
     let sdk_path = out_path.join("build").join("linphone-sdk").join("desktop");
 
     let bindings = bindgen::Builder::default()
-        .ctypes_prefix("c_types")
         .header("src/wrapper.h")
         .clang_arg(format!("-I{}/include", sdk_path.display()))
+        // Duplicate definition
+        .blacklist_item("IPPORT_RESERVED")
         .generate()
         .expect("Unable to generate bindings");
 
